@@ -405,6 +405,11 @@
 <span class="sd">    ``method=&quot;auto&quot;`` to automatically determine the compression method. This</span>
 <span class="sd">    can be overwritten by setting the *method* argument.</span>
 
+<span class="sd">    .. note::</span>
+
+<span class="sd">        To unpack zip and tar archives with one or more files, use</span>
+<span class="sd">        :class:`pooch.Unzip` and :class:`pooch.Untar` instead.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    method : str</span>
@@ -413,7 +418,8 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">modules</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;lzma&quot;</span><span class="p">:</span> <span class="n">lzma</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">:</span> <span class="n">lzma</span><span class="p">,</span> <span class="s2">&quot;gzip&quot;</span><span class="p">:</span> <span class="n">gzip</span><span class="p">,</span> <span class="s2">&quot;bzip2&quot;</span><span class="p">:</span> <span class="n">bz2</span><span class="p">}</span>
+    <span class="n">modules</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;auto&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;lzma&quot;</span><span class="p">:</span> <span class="n">lzma</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">:</span> <span class="n">lzma</span><span class="p">,</span> <span class="s2">&quot;gzip&quot;</span><span class="p">:</span> <span class="n">gzip</span><span class="p">,</span> <span class="s2">&quot;bzip2&quot;</span><span class="p">:</span> <span class="n">bz2</span><span class="p">}</span>
+    <span class="n">extensions</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;.xz&quot;</span><span class="p">:</span> <span class="s2">&quot;lzma&quot;</span><span class="p">,</span> <span class="s2">&quot;.gz&quot;</span><span class="p">:</span> <span class="s2">&quot;gzip&quot;</span><span class="p">,</span> <span class="s2">&quot;.bz2&quot;</span><span class="p">:</span> <span class="s2">&quot;bzip2&quot;</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
@@ -465,24 +471,25 @@
 <span class="sd">        extension. If no recognized extension is in the file name, will raise a</span>
 <span class="sd">        ValueError.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span>
-        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
-            <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">valid_methods</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;.xz&quot;</span><span class="p">:</span> <span class="s2">&quot;lzma&quot;</span><span class="p">,</span> <span class="s2">&quot;.gz&quot;</span><span class="p">:</span> <span class="s2">&quot;gzip&quot;</span><span class="p">,</span> <span class="s2">&quot;.bz2&quot;</span><span class="p">:</span> <span class="s2">&quot;bzip2&quot;</span><span class="p">}</span>
-            <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_methods</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Unrecognized extension &#39;</span><span class="si">{}</span><span class="s2">&#39;. Must be one of &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">ext</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">valid_methods</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-            <span class="n">method</span> <span class="o">=</span> <span class="n">valid_methods</span><span class="p">[</span><span class="n">ext</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Invalid compression method &#39;</span><span class="si">{}</span><span class="s2">&#39;. Must be one of &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">method</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-                <span class="p">)</span>
+        <span class="n">error_archives</span> <span class="o">=</span> <span class="s2">&quot;To unpack zip/tar archives, use pooch.Unzip/Untar instead.&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Invalid compression method &#39;</span><span class="si">{}</span><span class="s2">&#39;. Must be one of &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">method</span><span class="p">]</span></div>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;zip&quot;</span><span class="p">,</span> <span class="s2">&quot;tar&quot;</span><span class="p">}:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">message</span><span class="p">,</span> <span class="n">error_archives</span><span class="p">])</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extensions</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Unrecognized file extension &#39;</span><span class="si">{}</span><span class="s2">&#39;. Must be one of &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">ext</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;.zip&quot;</span><span class="p">,</span> <span class="s2">&quot;.tar&quot;</span><span class="p">}:</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">message</span><span class="p">,</span> <span class="n">error_archives</span><span class="p">])</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="n">ext</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">]</span></div>
 </pre></div>
 
            </div>
@@ -497,7 +504,7 @@
     <p>
         &copy; Copyright 2018-2020, The Pooch Developers
       <span class="lastupdated">
-        Last updated on May 14, 2020.
+        Last updated on Jul 31, 2020.
       </span>
 
     </p>

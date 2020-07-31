@@ -821,7 +821,8 @@
 <span class="sd">        a space. Hash can specify checksum algorithm using &quot;alg:hash&quot; format.</span>
 <span class="sd">        In case no algorithm is provided, SHA256 is used by default.</span>
 <span class="sd">        Only one file per line is allowed. Custom download URLs for individual</span>
-<span class="sd">        files can be specified as a third element on the line.</span>
+<span class="sd">        files can be specified as a third element on the line. Line comments</span>
+<span class="sd">        can be added and must be prepended with ``#``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -841,7 +842,12 @@
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
                     <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
-                <span class="n">elements</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="c1"># skip line comments</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+                    <span class="k">continue</span>
+
+                <span class="n">elements</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
                     <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span>
                         <span class="s2">&quot;Invalid entry in Pooch registry file &#39;</span><span class="si">{}</span><span class="s2">&#39;: &quot;</span>
@@ -881,12 +887,12 @@
         <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_url</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
         <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">parse_url</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">parsed_url</span><span class="p">[</span><span class="s2">&quot;protocol&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;ftp&quot;</span><span class="p">:</span>
-            <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">parsed_url</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">])</span>
+            <span class="n">directory</span><span class="p">,</span> <span class="n">file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">parsed_url</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">])</span>
             <span class="n">ftp</span> <span class="o">=</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP</span><span class="p">()</span>
             <span class="n">ftp</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">parsed_url</span><span class="p">[</span><span class="s2">&quot;netloc&quot;</span><span class="p">])</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">ftp</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
-                <span class="n">available</span> <span class="o">=</span> <span class="n">parsed_url</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">ftp</span><span class="o">.</span><span class="n">nlst</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+                <span class="n">available</span> <span class="o">=</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="n">ftp</span><span class="o">.</span><span class="n">nlst</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
             <span class="k">finally</span><span class="p">:</span>
                 <span class="n">ftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -967,7 +973,7 @@
     <p>
         &copy; Copyright 2018-2020, The Pooch Developers
       <span class="lastupdated">
-        Last updated on May 14, 2020.
+        Last updated on Jul 31, 2020.
       </span>
 
     </p>

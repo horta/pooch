@@ -429,13 +429,15 @@ code could look something like this:
         return data
 
 
-FTP with or without authentication
-----------------------------------
+FTP/SFTP with or without authentication
+---------------------------------------
 
-Pooch also comes with the :class:`~pooch.FTPDownloader` class that can be used
-when files are distributed over FTP. By default, :meth:`pooch.Pooch.fetch` will
-automatically detect if the download URL is HTTP(S) or FTP and use the appropriate
-downloader:
+Pooch also comes with the :class:`~pooch.FTPDownloader` and 
+:class:`~pooch.SFTPDownloader` classes that can be used
+when files are distributed over FTP or SFTP (secure FTP). 
+By default, :meth:`pooch.Pooch.fetch` will automatically detect 
+if the download URL is HTTP(S), FTP or SFTP and use the
+appropriate downloader:
 
 .. code:: python
 
@@ -480,6 +482,12 @@ explicitly to :meth:`pooch.Pooch.fetch`:
         fname = GOODBOY.fetch("c137.csv", downloader=download_ftp)
         data = pandas.read_csv(fname)
         return data
+
+
+To download files hosted on SFTP servers, the package `paramiko <https://github.com/paramiko/paramiko>`__ needs to be 
+installed. The usage of SFTP is identical to the example given above for the 
+authenticated :class:`~pooch.FTPDownloader` where :class:`~pooch.SFTPDownloader`
+is used instead. 
 
 
 Custom downloaders
@@ -615,6 +623,22 @@ prefixed with ``alg:``, e.g.
 
     c137.csv sha1:e32b18dab23935bc091c353b308f724f18edcb5e
     cronen.csv md5:b53c08d3570b82665784cedde591a8b0
+
+From version 1.2 the registry file can also contain line comments, prepended with a ``#``, e.g.:
+
+.. code-block:: none
+
+    # C-137 sample data
+    c137.csv 19uheidhlkjdwhoiwuhc0uhcwljchw9ochwochw89dcgw9dcgwc
+    # Cronenberg sample data
+    cronen.csv 1upodh2ioduhw9celdjhlfvhksgdwikdgcowjhcwoduchowjg8w
+
+.. note::
+
+    Make sure you set the pooch version in your ``setup.py`` to version 1.2 or
+    later when using comments as earlier versions cannot handle them:
+     ``install_requires = [..., "pooch>=1.2", ...]``
+
 
 To make sure the registry file is shipped with your package, include the following in
 your ``MANIFEST.in`` file:
